@@ -27,7 +27,8 @@ const scenes={
  outro2:{name:'A kingdom holding its breath',image:'courtyard',cast:['king-lost','usurper'],lines:[
  ['Narrator','castle','At last, the castle doors opened. The queen hurried to the king, and the whole courtyard filled with relieved quacks.'],
  ['The little duck','usurper','“No! I’m king now! I have the crown!”'],
- ['The king','king-lost','“You have my crown, little duck. But being king means looking after everyone. Let us show you.”']]},
+ ['The king','king-lost','“You have my crown, little duck. But being king means looking after everyone.”'],
+ ['The little duck','usurper','“You’ll never catch me!” With a flap and a giggle, he scrambled up the castle wall and away over the rooftops.']]},
  intro3:{name:'The very royal showdown',image:'courtyard',cast:['king-lost','usurper','player1','player2'],lines:[
  ['The little duck','usurper','“Then catch me! I’ve saved some of that forest fog!”'],
  ['Narrator','crown','He shook out three great foggy puffs. They were chilly, swirly, and just a little bit silly. The courtyard disappeared into mist.'],
@@ -39,7 +40,33 @@ const scenes={
  ['All three ducks','helper','“Sons? As in… princes? As in… royal pudding?”'],
  ['The queen','crown','“Yes, princes. And as for our crown thief: you are banished from the throne. You have a few things to learn about serving a family.”'],
  ['Narrator','usurper','And that is how three brave ducks became royal princes… while the little duck became the royal shoe-polisher.'],
- ['The little duck','usurper','“All right, all right. But why does a duck family have SO MANY SHOES?”']]}
+ ['The little duck','usurper','“All right, all right. But why does a duck family have SO MANY SHOES?”']]},
+ introcave:{name:'Darker than the bottom of a boot',lines:[
+ ['Narrator','lantern','Past the woodland gate, the feather trail tumbled down into a hollow hill. Inside, it was darker than the bottom of a boot.'],
+ ['Puddle','player2','“I can’t see my own beak! Pebble, is that you? Or is that a very friendly rock?”'],
+ ['Pebble','helper','“Glow crystals! They’re not broken, just sleepy. One good quack and they light right up.”'],
+ ['Pip','player1','“Then let’s be the loudest ducks this cave has ever heard. Stay close, everyone!”']]},
+ outrocave:{name:'A grotto full of stars',lines:[
+ ['Narrator','lantern','Three crystals blazed like little moons. All across the ceiling, a thousand glowworms blinked hello.'],
+ ['Puddle','player2','“Look, daylight! And… is that fog spilling in?”'],
+ ['Pip','player1','“Fog means the king is close. Come on!”']]},
+ introcliff:{name:'The wind has big opinions',lines:[
+ ['Narrator','feather','The quickest way home was over the Blustery Bluffs, where the wind had very big opinions.'],
+ ['The king','king-lost','“Hold on to your feathers! These winds once blew my crown clean into a cow pasture.”'],
+ ['Pebble','helper','“See the swirls of dandelion fluff? Hop in, and the breeze will float you right over the gaps!”']]},
+ outrocliff:{name:'Home in sight',lines:[
+ ['Narrator','castle','From the top of the last bluff they saw the river sparkling, and beyond it, the castle towers.'],
+ ['The king','king-lost','“Home! I can almost smell the royal porridge.”'],
+ ['Puddle','player2','“Race you to the river! Last one there is a soggy breadcrumb!”']]},
+ introroof:{name:'Tiptoe, little ducks',lines:[
+ ['Narrator','crown','The sun was setting over the castle rooftops. Somewhere up there, the crown thief was giggling.'],
+ ['Pebble','helper','“The tower bells! If we ring all three, the whole castle wakes up, and he’ll have nowhere to hide.”'],
+ ['Puddle','player2','“Just tiptoe past the castle cats. They get very grumpy when you wake them from a nap.”'],
+ ['Pip','player1','“Tiptoe. Got it. Ducks are great at tiptoeing.” (Ducks are not great at tiptoeing.)']]},
+ outroroof:{name:'Dong! Dong! Dong!',lines:[
+ ['Narrator','crown','DONG! DONG! DONG! The bells rang out across the kingdom. Windows flew open. Every duck in the castle woke up.'],
+ ['The little duck','usurper','“Uh-oh. That’s a LOT of ducks.” He slid down a drainpipe into the royal courtyard.'],
+ ['Pip','player1','“After him! This ends in the courtyard!”']]}
 };
 let sceneKey='',sceneIndex=0,sceneDone=null;
 let moviePaused=false,movieTime=0,shotTime=0;
@@ -96,6 +123,8 @@ function cineLantern(c,x,y,lit,t){
 }
 function cineShoe(c,x,y,size=40,angle=0){c.save();c.translate(x,y);c.scale(size/50,size/50);c.rotate(angle);vPath(c,'M-22 4 Q-20 -5 -7 -6 L-5 -20 L10 -19 L11 -4 Q28 -3 29 7 Q28 13 -21 12Z','#76543f','#394d3e',2);vStroke(c,[[-19,12],[25,12]],'#d1af75',3);vStroke(c,[[0,-10],[8,-9],[0,-6],[8,-5]],'#c1a071',1);c.restore();}
 function cinematicBackdrop(c,w,h,key,t){
+ const newKind=key.endsWith('cave')?'cave':key.endsWith('cliff')?'cliffs':key.endsWith('roof')?'roof':null;
+ if(newKind){const sc=h/620,ww=w/sc;c.save();c.scale(sc,sc);({cave:caveSky,cliffs:cliffSky,roof:roofSky})[newKind](c,{cam:t*14,W:ww,clock:t},720);drawTerrain(c,{x:-40,y:480,w:ww+80,h:220,type:newKind==='cave'?'rock':newKind==='roof'?'roof':'ground'},{cam:-40,W:ww+80,clock:t,kind:newKind});c.restore();return 480*sc;}
  const court=key==='outro2'||key==='intro3'||key==='outro3',river=key==='intro2',night=key==='intro0'||key==='intro1';
  const bg=c.createLinearGradient(0,0,0,h);bg.addColorStop(0,night?'#183d4b':court?'#efdaa6':'#b2c8a3');bg.addColorStop(1,night?'#608c7c':'#718f6a');c.fillStyle=bg;c.fillRect(0,0,w,h);
  const im=river?cinemaImages['platform-forest']:court?cinemaImages['cinema-throne']:cinemaImages['cinema-forest'];
@@ -125,8 +154,8 @@ function renderCinematic(){
  const canvas=$('cinemaCanvas');if(!canvas||!scenes[sceneKey])return;
  const width=Math.max(320,innerWidth),height=Math.max(240,innerHeight),dpr=Math.min(devicePixelRatio||1,1.5);
  if(canvas.width!==Math.round(width*dpr)||canvas.height!==Math.round(height*dpr)){canvas.width=Math.round(width*dpr);canvas.height=Math.round(height*dpr);}
- const c=canvas.getContext('2d'),w=1440,h=w*height/width,t=movieTime,s=shotTime,i=sceneIndex,dur=shotDuration(),p=cineClamp(s/dur),g=cinematicBackdrop.bind(null,c,w,h,sceneKey,t);
- c.setTransform(canvas.width/w,0,0,canvas.height/h,0,0);c.clearRect(0,0,w,h);const ground=g(),size=Math.min(135,h*.215),small=size*.82;
+ const tallFilm=height>width*1.1,c=canvas.getContext('2d'),w=tallFilm?820:1440,hFull=w*height/width,h=tallFilm?hFull*.64:hFull,t=movieTime,s=shotTime,i=sceneIndex,dur=shotDuration(),p=cineClamp(s/dur),g=cinematicBackdrop.bind(null,c,w,h,sceneKey,t);
+ c.setTransform(canvas.width/w,0,0,canvas.height/hFull,0,0);c.clearRect(0,0,w,hFull);if(tallFilm){const lower=c.createLinearGradient(0,h,0,hFull);lower.addColorStop(0,'#1d4434');lower.addColorStop(1,'#0f2a20');c.fillStyle=lower;c.fillRect(0,h,w,hFull-h);}c.save();c.beginPath();c.rect(0,0,w,h);c.clip();const ground=g(),size=Math.min(135,h*.215),small=size*.82;
  const speaking=scenes[sceneKey].lines[i][1],ambient=filmReducedMotion?t*.35:t;
  const duck=(kind,x,opts={})=>{const yy=opts.y??ground;vOval(c,x*w,yy+3,(opts.size||size)*.31,(opts.size||size)*.045,'#233d3426');renderDuckRig(c,{x:x*w,y:yy,size:opts.size||size,time:ambient,face:opts.face??1,kind,seed:kind==='player1'?1:kind==='player2'?2:3,talk:speaking===kind ? .75 : 0,emotion:'happy',...opts});};
  const trio=(base=.25,gap=.105,opts={})=>['player1','player2','helper'].forEach((kind,j)=>duck(kind,base+gap*j,{size:small,seed:j,...(typeof opts==='function'?opts(kind,j):opts)}));
@@ -174,6 +203,7 @@ function renderCinematic(){
   if(i===0){trio(cineLerp(.06,.3,p),.085,{walk:.55,size:small*.9});duck('king-lost',cineLerp(.38,.56,p),{walk:.35});duck('queen',cineLerp(.91,.66,p/.7),{face:-1,walk:p<.7?1:0,gesture:.9,emotion:'content'});cineGlow(c,w*.61,ground-size*.45,220,'#fce2a5',.18);}
   if(i===1){c.fillStyle='#ae7751';c.fillRect(w*.74,ground-45,w*.15,45);vPath(c,`M${w*.76} ${ground-50} L${w*.76} ${ground-240} Q${w*.82} ${ground-300} ${w*.88} ${ground-240} L${w*.88} ${ground-50}Z`,'#965d4c','#596047',5);duck('usurper',.81,{y:ground-45,size:small,face:-1,gesture:Math.sin(s*8)*.6,emotion:'determined',squash:Math.abs(Math.sin(s*7))*.6});trio(.19,.08,{size:small*.85});duck('king-lost',.52,{face:1});duck('queen',.63,{face:1});}
   if(i===2){duck('king-lost',cineLerp(.5,.63,p),{walk:.25,gesture:.9,emotion:'proud'});duck('usurper',.82,{size:small,face:p<.5?-1:1,gesture:.15,emotion:'worried'});duck('queen',.47,{face:1});trio(.18,.075,{size:small*.85});}
+  if(i===3){duck('king-lost',.55,{gesture:.9,emotion:'surprised'});duck('queen',.45,{face:1,emotion:'surprised'});trio(.18,.075,{size:small*.85,emotion:'surprised'});const run=cineEase(p/.7);duck('usurper',cineLerp(.82,1.12,run),{size:small,walk:1,y:ground-run*h*.35,air:run>0?1:0,emotion:'proud',face:1});}
  }
  else if(sceneKey==='intro3'){
   if(i<2)trio(.17,.105,{size:small,emotion:'worried',gesture:.25});duck('king-lost',.1,{size:size*.84});
@@ -200,10 +230,51 @@ function renderCinematic(){
    if(i===5){c.save();c.globalAlpha=cineEase((p-.4)/.3);c.font=`italic ${Math.max(18,h*.032)}px Georgia`;c.textAlign='center';c.fillStyle='#3f5d45';c.fillText('Made by Maya E. Dahl',w*.46,h*.23);c.restore();}
   }
  }
+ else if(sceneKey==='introcave'||sceneKey==='outrocave'){
+  const lit=sceneKey==='outrocave'?3:i>=3?1:i===2&&p>.5?1:0,cry=(x,on)=>{c.save();c.translate(x*w,ground);c.scale(2.2,2.2);drawGateLight(c,{x:0,y:-30,lit:on,style:'crystal',ring:on&&i===2&&p<.8?(.8-p)*2:0},t,()=>{},()=>{});c.restore();};
+  if(sceneKey==='introcave'){cry(.74,lit>0);
+   if(i===0)trio(cineLerp(.04,.3,p),.09,{walk:.5,emotion:'curious'});
+   if(i===1){trio(.3,.09,(kind)=>({emotion:kind==='player2'?'surprised':'curious',face:kind==='player2'?(Math.sin(s*3)>0?1:-1):1,talk:kind==='player2'?1:0}));}
+   if(i===2){trio(.3,.09,(kind)=>({gesture:kind==='helper'?.9:0,emotion:'curious'}));if(p>.45&&p<.6)cineRing(c,.4*w,ground-small*.5,(p-.45)/.15,'#bff6ff',300);}
+   if(i===3)trio(cineLerp(.3,.62,p),.09,{walk:.7,emotion:'determined'});
+   const cx=(i===0?cineLerp(.04,.3,p):i===3?cineLerp(.3,.62,p):.3)+.09;const dark=c.createRadialGradient(cx*w,ground-small*.6,size*.8,cx*w,ground-small*.6,size*(lit?6:3.2));dark.addColorStop(0,'rgba(5,8,18,0)');dark.addColorStop(1,`rgba(5,8,18,${lit?.55:.88})`);c.fillStyle=dark;c.fillRect(0,0,w,h);if(lit)cineGlow(c,.74*w,ground-90,300,'#8ff0ff',.35);}
+  else{[.2,.5,.8].forEach(x=>cry(x,true));for(let j=0;j<40;j++){const x=(j*137)%w,y=(j*53)%(ground*.55);c.save();c.globalAlpha=.4+Math.sin(t*3+j)*.4;vOval(c,x,y,2.5,2.5,'#aaf6ff');c.restore();}
+   if(i===0)['player1','player2','helper'].forEach((kind,j)=>{const jump=hop(.2+j*.25,40);duck(kind,.32+j*.1,{size:small,y:ground-jump,air:jump/40,gesture:1,emotion:'happy'});});
+   if(i===1){cineGlow(c,w*.98,ground-150,420,'#fff3d0',.6);cineFog(c,w,h,t,.8,0);trio(.45,.09,{face:1,emotion:'surprised',gesture:.5});}
+   if(i===2){cineGlow(c,w*.98,ground-150,420,'#fff3d0',.6);trio(cineLerp(.45,1.05,p),.09,{walk:.9,emotion:'determined'});}}
+ }
+ else if(sceneKey==='introcliff'||sceneKey==='outrocliff'){
+  for(let j=0;j<12;j++){const lx=((j*173+t*260)%(w+200))-100,ly=ground*.3+(j*67)%(ground*.6);c.save();c.translate(lx,ly);c.rotate(t*5+j);vOval(c,0,0,9,4,j%2?'#c9a85a':'#97ad63');c.restore();}
+  if(sceneKey==='introcliff'){
+   if(i===0){duck('king-lost',cineLerp(.02,.25,p),{walk:.4,size:size*.9});trio(cineLerp(.12,.36,p),.085,{walk:.6,size:small*.9});}
+   if(i===1){duck('king-lost',.25,{size:size*.9,gesture:.5+Math.sin(s*4)*.3,emotion:'surprised',squash:Math.abs(Math.sin(s*6))*.3});trio(.36,.085,{size:small*.9,emotion:'curious'});for(let j=0;j<8;j++){const y=ground*.3+j*40,x=((j*233+s*900)%(w+400))-200;vStroke(c,[[x,y],[x+120,y-6],[x+200,y]],'#ffffffaa',3);}}
+   if(i===2){const ux=.74;c.save();c.globalAlpha=.4;c.fillStyle='#fffbe8';c.fillRect(ux*w-70,0,140,ground);c.restore();for(let j=0;j<16;j++){const y=ground-((s*140+j*60)%ground),x=ux*w+Math.sin(s*2+j)*55;vOval(c,x,y,3,3,'#fffdf2');}
+    duck('king-lost',.2,{size:size*.9});duck('helper',.32,{size:small*.9,gesture:.95,face:1});duck('player2',.42,{size:small*.9,emotion:'happy'});const fl=cineEase((p-.2)/.6);duck('player1',cineLerp(.52,.74,Math.min(1,p*2)),{size:small*.9,y:ground-fl*ground*.45-Math.sin(s*3)*8,air:fl>0?1:0,flap:fl>0?.6:0,emotion:fl>0?'surprised':'happy',walk:p<.4?.6:0});}
+  }else{
+   c.save();c.globalAlpha=.7;const cx=w*.88,cy=ground-260;c.fillStyle='#7d6f96';c.fillRect(cx-60,cy,40,140);c.fillRect(cx,cy-30,50,170);c.fillRect(cx+70,cy+10,36,130);[[cx-40,cy],[cx+25,cy-30],[cx+88,cy+10]].forEach(([x,y])=>{c.beginPath();c.moveTo(x-26,y);c.lineTo(x,y-40);c.lineTo(x+26,y);c.fill();});c.restore();cineGlow(c,cx,cy+40,260,'#fff3c8',.3);
+   if(i===0){duck('king-lost',.32,{gesture:.9,emotion:'content'});trio(.44,.09,{size:small,face:1,emotion:'surprised',gesture:.4});}
+   if(i===1){duck('king-lost',.32,{emotion:'content',squash:Math.abs(Math.sin(s*3))*.3,gesture:.3});trio(.44,.09,{size:small,face:1});}
+   if(i===2){duck('player2',cineLerp(.53,1.1,p*1.3),{size:small,walk:1,emotion:'determined'});duck('player1',cineLerp(.44,1.05,Math.max(0,p*1.3-.15)),{size:small,walk:1});duck('helper',cineLerp(.62,1.02,Math.max(0,p*1.3-.3)),{size:small,walk:.8});duck('king-lost',cineLerp(.32,.7,p),{walk:.4,emotion:'content'});}
+  }
+ }
+ else if(sceneKey==='introroof'||sceneKey==='outroroof'){
+  const bell=(x,on,ring=0)=>{c.save();c.translate(x*w,ground);c.scale(2,2);drawGateLight(c,{x:0,y:-5,lit:on,style:'bell',ring},t,()=>{},()=>{});c.restore();};
+  const cat=(x,state,stT=.5)=>{c.save();c.translate(x*w,ground-30);c.scale(2.6,2.6);drawStoryEnemy(c,{x:0,y:0,kind:'cat',state,stateT:stT,vx:-1},t,'roof');c.restore();};
+  if(sceneKey==='introroof'){
+   if(i===0){const ux=.86,hy=Math.abs(Math.sin(s*3))*30;duck('usurper',ux,{y:ground-140-hy,size:small*.8,face:-1,air:hy>5?1:0,emotion:'proud'});c.fillStyle='#a3533f';c.fillRect(ux*w-40,ground-140,80,140);trio(cineLerp(.04,.32,p),.09,{walk:.5,emotion:'determined'});}
+   if(i===1){bell(.74,false);trio(.3,.09,(kind)=>({gesture:kind==='helper'?.95:0,emotion:'curious'}));}
+   if(i===2){cat(.66,'sleep');trio(.3,.09,(kind)=>({talk:kind==='player2'?.5:0,gesture:kind==='player2'?.4:0,emotion:'worried'}));}
+   if(i===3){const stir=p>.6;cat(.66,stir?'stretch':'sleep',stir?.45:.5);duck('player1',cineLerp(.3,.55,p),{size:small,walk:.25,squash:Math.abs(Math.sin(s*4))*.5,emotion:stir?'surprised':'determined',gesture:.4});duck('player2',.27,{size:small,emotion:'worried'});duck('helper',.19,{size:small,gesture:stir?.9:0,emotion:stir?'surprised':'content'});}
+  }else{
+   if(i===0){[.2,.5,.8].forEach((x,j)=>bell(x,true,1.5-((s+j*.4)%1.5)));['player1','player2','helper'].forEach((kind,j)=>{const jump=hop(.3+j*.3,40);duck(kind,.33+j*.1,{size:small,y:ground-jump,air:jump/40,gesture:1,talk:1,emotion:'happy'});});}
+   if(i===1){trio(.2,.09,{size:small,emotion:'surprised'});const slide=cineEase((p-.35)/.5);duck('usurper',cineLerp(.72,.95,slide),{y:ground+slide*h*.4,size:small,face:-1,emotion:'surprised',gesture:.9,squash:.2});c.fillStyle='#6d7a7f';c.fillRect(w*.93,ground,14,h);}
+   if(i===2)trio(cineLerp(.25,1.05,p),.09,{walk:1,emotion:'determined',gesture:.3});
+  }
+ }
  // Gentle edge shading gives dimensional light without obscuring the animation.
  const vignette=c.createRadialGradient(w*.5,h*.45,h*.1,w*.5,h*.45,w*.7);vignette.addColorStop(0,'#102d2100');vignette.addColorStop(1,'#102d2144');c.fillStyle=vignette;c.fillRect(0,0,w,h);
  if(s<.32){c.fillStyle=`rgba(19,39,31,${(1-s/.32)*.17})`;c.fillRect(0,0,w,h);}
- canvas.dataset.scene=sceneKey;canvas.dataset.shot=String(i);canvas.dataset.time=shotTime.toFixed(2);
+ c.restore();if(tallFilm){c.fillStyle='#d8c48a88';c.fillRect(0,h,w,4);}canvas.dataset.scene=sceneKey;canvas.dataset.shot=String(i);canvas.dataset.time=shotTime.toFixed(2);
  const bar=$('sceneProgress');if(bar)bar.style.setProperty('--shot-progress',`${p*100}%`);
 }
 // Readable deterministic surface for book textures, screenshots and regression checks.
